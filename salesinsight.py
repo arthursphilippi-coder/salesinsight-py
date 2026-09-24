@@ -219,3 +219,17 @@ def calcular_metricas(registros):
     metricas["por_regiao"] = regs
 
     return metricas
+
+# ======================================================================
+# RF06: Segmentar Clientes com Lambda
+# ======================================================================
+def segmentar_clientes(registros):
+    """Classifica clientes em Ouro, Prata e Bronze utilizando função lambda."""
+    classificar = lambda t: "Ouro" if t > 15000 else ("Prata" if t >= 5000 else "Bronze")
+    gasto = {}
+    for r in registros:
+        gasto[r["cliente"]] = gasto.get(r["cliente"], 0.0) + r["receita_total"]
+
+    clientes = [{"cliente": k, "total_gasto": round(v, 2), "segmento": classificar(v)} for k, v in gasto.items()]
+    clientes.sort(key=lambda x: x["total_gasto"], reverse=True)
+    return clientes
