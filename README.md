@@ -1,1 +1,1 @@
-# salesinsight-py
+# SalesInsight PY
