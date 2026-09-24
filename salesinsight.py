@@ -85,3 +85,49 @@ def inspecionar_dados(registros):
     print(f"Colunas: {colunas}")
     print(f"Valores ausentes: {nulos}")
     print("Primeiros 3 registros:", registros[:3])
+
+# ======================================================================
+# RF03: Limpeza e Tratamento de Dados
+# ======================================================================
+def limpar_dados(registros):
+    """Limpa textos, valida datas com datetime e padroniza clientes com regex."""
+    relatorio = {"iniciais": len(registros), "removidos_data": 0, "removidos_nulos": 0, "finais": 0}
+    limpos = []
+
+    for r in registros:
+        # Remover espaços extras nas colunas de texto
+        for k in ("cliente", "produto", "categoria", "regiao"):
+            r[k] = (r.get(k) or "").strip()
+
+        # Validar data
+        try:
+            r["data_venda"] = datetime.strptime(r["data_venda"], "%Y-%m-%d")
+        except (ValueError, TypeError):
+            relatorio["removidos_data"] += 1
+            continue
+
+        # Validar nulos e conversão numérica
+        q_str, p_str = str(r.get("quantidade") or "").strip(), str(r.get("preco_unitario") or "").strip()
+        if not q_str or not p_str:
+            relatorio["removidos_nulos"] += 1
+            continue
+
+        try:
+            r["quantidade"] = int(float(q_str))
+            r["preco_unitario"] = float(p_str)
+        except ValueError:
+            relatorio["removidos_nulos"] += 1
+            continue
+
+        # Padronizar nome do cliente para formato Cliente_NNN
+        nome_limpo = re.sub(r"[^A-Za-z0-9_]", "", r["cliente"])
+        numeros = re.findall(r"\d+", nome_limpo)
+        r["cliente"] = f"Cliente_{int(numeros[0]):03d}" if numeros else nome_limpo
+
+        limpos.append(r)
+
+    relatorio["finais"] = len(limpos)
+    print("\n=== RELATÓRIO DE LIMPEZA ===")
+    print(f"Entraram: {relatorio['iniciais']} | Removidos (Data): {relatorio['removidos_data']} | "
+          f"Removidos (Nulos): {relatorio['removidos_nulos']} | Permaneceram: {relatorio['finais']}")
+    return limpos, relatorio
