@@ -131,3 +131,34 @@ def limpar_dados(registros):
     print(f"Entraram: {relatorio['iniciais']} | Removidos (Data): {relatorio['removidos_data']} | "
           f"Removidos (Nulos): {relatorio['removidos_nulos']} | Permaneceram: {relatorio['finais']}")
     return limpos, relatorio
+
+# ======================================================================
+# RF04: Criar Colunas Derivadas
+# ======================================================================
+def criar_colunas_derivadas(registros):
+    """Calcula receita total, mês, trimestre, ano e faixa de valor."""
+    for r in registros:
+        r["receita_total"] = round(r["quantidade"] * r["preco_unitario"], 2)
+        dt = r["data_venda"]
+        r["mes"] = dt.month
+        r["mes_nome"] = MESES_PT[dt.month]
+        r["ano"] = dt.year
+
+        # Trimestre com condicional simples
+        if dt.month <= 3:
+            r["trimestre"] = "Q1"
+        elif dt.month <= 6:
+            r["trimestre"] = "Q2"
+        elif dt.month <= 9:
+            r["trimestre"] = "Q3"
+        else:
+            r["trimestre"] = "Q4"
+
+        # Faixa de valor da venda
+        if r["receita_total"] < 500:
+            r["faixa_receita_item"] = "Baixo Valor"
+        elif r["receita_total"] < 5000:
+            r["faixa_receita_item"] = "Médio Valor"
+        else:
+            r["faixa_receita_item"] = "Alto Valor"
+    return registros
