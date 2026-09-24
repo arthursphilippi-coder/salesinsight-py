@@ -233,3 +233,29 @@ def segmentar_clientes(registros):
     clientes = [{"cliente": k, "total_gasto": round(v, 2), "segmento": classificar(v)} for k, v in gasto.items()]
     clientes.sort(key=lambda x: x["total_gasto"], reverse=True)
     return clientes
+
+# ======================================================================
+# RF07: Função de Ordem Superior e Estatísticas Gerais
+# ======================================================================
+def processar_coluna(registros, coluna, funcao_transformacao, nome_saida=None):
+    """Aplica uma função de transformação a uma coluna (função de ordem superior)."""
+    nome_saida = nome_saida or f"{coluna}_transformado"
+    for r in registros:
+        r[nome_saida] = funcao_transformacao(r[coluna])
+    return registros
+
+
+def calcular_estatisticas_gerais(registros):
+    """Calcula estatísticas gerais e responde quantas vendas ficaram acima da média."""
+    total = len(registros)
+    receitas = [r["receita_total"] for r in registros]
+    receita_total = sum(receitas)
+    media = receita_total / total
+    acima_da_media = sum(1 for r in receitas if r > media)
+
+    return {
+        "total_vendas": total,
+        "receita_total": round(receita_total, 2),
+        "media_receita_por_venda": round(media, 2),
+        "vendas_acima_da_media": acima_da_media
+    }
