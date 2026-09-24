@@ -162,3 +162,60 @@ def criar_colunas_derivadas(registros):
         else:
             r["faixa_receita_item"] = "Alto Valor"
     return registros
+
+# ======================================================================
+# RF05: Métricas Agregadas
+# ======================================================================
+def calcular_metricas(registros):
+    """Agrupa e calcula totais por Mês, Top 5 Produtos, Categoria e Região."""
+    metricas = {}
+
+    # 1. Por Mês
+    por_mes = {}
+    for r in registros:
+        chave = (r["ano"], r["mes"], r["mes_nome"])
+        if chave not in por_mes:
+            por_mes[chave] = {"receita_total": 0.0, "quantidade": 0, "n_vendas": 0}
+        por_mes[chave]["receita_total"] += r["receita_total"]
+        por_mes[chave]["quantidade"] += r["quantidade"]
+        por_mes[chave]["n_vendas"] += 1
+
+    metricas["por_mes"] = [
+        {"ano": k[0], "mes": k[1], "mes_nome": k[2], "receita_total": round(v["receita_total"], 2),
+         "quantidade": v["quantidade"], "n_vendas": v["n_vendas"]}
+        for k, v in sorted(por_mes.items())
+    ]
+
+    # 2. Top 5 Produtos por Receita
+    por_prod = {}
+    for r in registros:
+        p = r["produto"]
+        por_prod[p] = por_prod.get(p, 0.0) + r["receita_total"]
+    prods = [{"produto": k, "receita_total": round(v, 2)} for k, v in por_prod.items()]
+    prods.sort(key=lambda x: x["receita_total"], reverse=True)
+    metricas["top_produtos"] = prods[:5]
+
+    # 3. Por Categoria
+    por_cat = {}
+    for r in registros:
+        c = r["categoria"]
+        por_cat[c] = por_cat.get(c, 0.0) + r["receita_total"]
+    cats = [{"categoria": k, "receita_total": round(v, 2)} for k, v in por_cat.items()]
+    cats.sort(key=lambda x: x["receita_total"], reverse=True)
+    metricas["por_categoria"] = cats
+
+    # 4. Por Região (com Ticket Médio)
+    por_reg = {}
+    for r in registros:
+        reg = r["regiao"]
+        if reg not in por_reg:
+            por_reg[reg] = {"receita_total": 0.0, "n_vendas": 0}
+        por_reg[reg]["receita_total"] += r["receita_total"]
+        por_reg[reg]["n_vendas"] += 1
+
+    regs = [{"regiao": k, "receita_total": round(v["receita_total"], 2),
+             "ticket_medio": round(v["receita_total"] / v["n_vendas"], 2)} for k, v in por_reg.items()]
+    regs.sort(key=lambda x: x["receita_total"], reverse=True)
+    metricas["por_regiao"] = regs
+
+    return metricas
