@@ -259,3 +259,35 @@ def calcular_estatisticas_gerais(registros):
         "media_receita_por_venda": round(media, 2),
         "vendas_acima_da_media": acima_da_media
     }
+
+# ======================================================================
+# RF08: Exportação em CSV e JSON
+# ======================================================================
+def exportar_resultados(metricas, clientes, estatisticas):
+    """Grava arquivos na pasta de saídas e faz a releitura de conferência do JSON."""
+    os.makedirs(PASTA_SAIDA, exist_ok=True)
+
+    # Escrever CSVs de métricas
+    for nome, dados in metricas.items():
+        with open(os.path.join(PASTA_SAIDA, f"metricas_{nome}.csv"), "w", newline="", encoding="utf-8-sig") as f:
+            w = csv.DictWriter(f, fieldnames=dados[0].keys())
+            w.writeheader()
+            w.writerows(dados)
+
+    # Escrever CSV de clientes
+    with open(os.path.join(PASTA_SAIDA, "segmentacao_clientes.csv"), "w", newline="", encoding="utf-8-sig") as f:
+        w = csv.DictWriter(f, fieldnames=clientes[0].keys())
+        w.writeheader()
+        w.writerows(clientes)
+
+    # Escrever JSON
+    caminho_json = os.path.join(PASTA_SAIDA, "estatisticas_gerais.json")
+    with open(caminho_json, "w", encoding="utf-8") as f:
+        json.dump(estatisticas, f, indent=4, ensure_ascii=False)
+
+    # Reler JSON para conferência
+    with open(caminho_json, "r", encoding="utf-8") as f:
+        conferencia = json.load(f)
+
+    print("\n=== EXPORTAÇÃO COMPLETA ===")
+    print(f"JSON lido de volta com sucesso: {conferencia}")
