@@ -291,3 +291,51 @@ def exportar_resultados(metricas, clientes, estatisticas):
 
     print("\n=== EXPORTAÇÃO COMPLETA ===")
     print(f"JSON lido de volta com sucesso: {conferencia}")
+
+# ======================================================================
+# RF09: Ponto de Entrada (main)
+# ======================================================================
+def main():
+    print("=" * 50)
+    print("SALESINSIGHT PY - Análise de Dados de Vendas")
+    print("=" * 50)
+
+    # 1. Garantir e carregar o dataset
+    if not os.path.exists(CAMINHO_CSV):
+        gerar_dataset_vendas(CAMINHO_CSV)
+    registros = carregar_dataset(CAMINHO_CSV)
+    inspecionar_dados(registros)
+
+    # 2. Limpeza e colunas derivadas
+    registros_limpos, _ = limpar_dados(registros)
+    registros_limpos = criar_colunas_derivadas(registros_limpos)
+
+    # 3. Função de ordem superior (RF07)
+    registros_limpos = processar_coluna(
+        registros_limpos, "receita_total", lambda x: round(x / 1000, 2), "receita_em_milhares"
+    )
+
+    # 4. Cálculo de métricas
+    metricas = calcular_metricas(registros_limpos)
+    print("\n=== RESUMO DAS MÉTRICAS ===")
+    print("Top 1 Produto:", metricas["top_produtos"][0])
+    print("Top 1 Região:", metricas["por_regiao"][0])
+
+    # 5. Segmentação de clientes
+    clientes = segmentar_clientes(registros_limpos)
+    print("\n=== TOP 3 CLIENTES ===")
+    for c in clientes[:3]:
+        print(c)
+
+    # 6. Estatísticas e resposta do desafio
+    estatisticas = calcular_estatisticas_gerais(registros_limpos)
+    print(f"\nResposta ao Desafio: {estatisticas['vendas_acima_da_media']} de "
+          f"{estatisticas['total_vendas']} vendas ficaram acima da média.")
+
+    # 7. Exportação
+    exportar_resultados(metricas, clientes, estatisticas)
+    print("\n[CONCLUÍDO] Fluxo executado com sucesso!")
+
+
+if __name__ == "__main__":
+    main()
